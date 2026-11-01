@@ -30,7 +30,7 @@ Department of Applied Mathematics and Statistics, Johns Hopkins University</p>
 
 ## Method
 
-TipSweep searches for a learning rate by training only the last $k_0$ transformer blocks of a pretrained model. It then transfers the selected rate $\eta_{k_0}$ to a run with $k$ trainable blocks, starting from the same checkpoint and using the same update precision.
+TipSweep searches for a learning rate by training only the last $k_0$ transformer blocks of a pretrained model. It then transfers the selected rate $\eta_{k_0}$ to a run with $k$ trainable blocks, starting from the same checkpoint and using the same update precision. We show that out method allows excellent lr transfer even with $k_0=1$.
 
 | Parameter-update precision | Learning rate transferred from $k_0$ to $k$ |
 | :--- | :--- |
