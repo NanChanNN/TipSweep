@@ -1,0 +1,102 @@
+# ==========================
+# Python
+# ==========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Packaging / build
+build/
+dist/
+wheels/
+.eggs/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.conda/
+
+# Secrets / environment variables
+.env
+.env.*
+!.env.example
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Type checkers / linters
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ==========================
+# PyTorch / model weights
+# ==========================
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+*.onnx
+*.h5
+*.gguf
+
+# ==========================
+# Hugging Face / Transformers
+# ==========================
+.cache/
+hf_cache/
+outputs/
+output/
+results/
+checkpoints/
+checkpoint-*/
+saved_models/
+
+# ==========================
+# Experiment tracking & logs
+# ==========================
+runs/
+logs/
+*.log
+wandb/
+mlruns/
+lightning_logs/
+tb_logs/
+
+# ==========================
+# Data (remove if you want to commit small datasets)
+# ==========================
+data/
+datasets/
+raws/
+
+# ==========================
+# IDE / editors
+# ==========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ==========================
+# OS files
+# ==========================
+.DS_Store
+Thumbs.db
+desktop.ini
