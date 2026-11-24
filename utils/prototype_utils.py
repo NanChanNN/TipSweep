@@ -1,5 +1,8 @@
 import torch
 from typing import List
+import math
+import torch.nn as nn
+from transformers.trainer_pt_utils import get_parameter_names
 
 
 def tokenize_fn(example, processing_class):
@@ -77,3 +80,45 @@ def prompt_completion_collate_fn(batch,
     output['labels'][completion_mask == 0] = -100
     
     return output
+
+
+def get_parameter_groups(model: nn.Module, learning_rate: float, weight_decay: float,):
+    forbidden_name_patterns = [r"bias", r"layernorm", r"rmsnorm", r"(?:^|\.)norm(?:$|\.)", r"_norm(?:$|\.)"]
+    decay_parameters = get_parameter_names(model, [nn.LayerNorm], forbidden_name_patterns)
+
+    grouped_parameters = [
+        {
+            "params": [
+                p for n, p in model.named_parameters() if (n in decay_parameters and p.requires_grad)
+            ],
+            "weight_decay": weight_decay,
+            "lr": learning_rate,
+        },
+        {
+            "params": [
+                p for n, p in model.named_parameters() if (n not in decay_parameters and p.requires_grad)
+            ],
+            "weight_decay": 0.0,
+            "lr": learning_rate,
+        }
+    ]
+
+    trainable_params = [p for group in grouped_parameters for p in group["params"]]
+
+    return grouped_parameters, trainable_params
+
+
+def lr_mult(step: int,
+            warmup_steps: int,
+            total_steps: int,
+            warmup_start_factor: float = 1e-04,
+            min_lr_mult: float = 0.1) -> float:
+    if warmup_steps > 0 and step <= warmup_steps:
+        return warmup_start_factor + (1.0 - warmup_start_factor) * (step / warmup_steps)
+
+    denom = max(1, total_steps - warmup_steps)
+    progress = (step - warmup_steps) / denom
+    progress = min(max(progress, 0.0), 1.0)
+    cosine = 0.5 * (1.0 + math.cos(math.pi * progress))
+
+    return min_lr_mult + (1.0 - min_lr_mult) * cosine

@@ -201,7 +201,6 @@ if __name__ == "__main__":
     parser.add_argument('--max-seq-length', type=int, default=1024)
     parser.add_argument('--logging-steps', type=int, default=10)
     parser.add_argument('--max-steps', type=int, default=None)
-    parser.add_argument('--profile-batch-size', type=int, default=8)
     parser.add_argument('--jvp-chunk-size', type=int, default=4)
     parser.add_argument('--token-chunk-size', type=int, default=32)
     parser.add_argument('--measure-every', type=int, default=500)
@@ -209,7 +208,6 @@ if __name__ == "__main__":
 
     # training set size
     parser.add_argument('--train-set-size', type=int, default=10000)
-    parser.add_argument('--test-set-size', type=int, default=1000)
     parser.add_argument('--filter-length', action='store_true')
     parser.add_argument('--enable-gradient-checkpointing', action='store_true')
 

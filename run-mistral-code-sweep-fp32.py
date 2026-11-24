@@ -1,14 +1,13 @@
 import argparse
 import logging
 import os
-from typing import Set
 
-import numpy as np
 from datasets import load_dataset
 from transformers import set_seed, AutoTokenizer
 from trl import SFTConfig, SFTTrainer
 
 from utils.data_utils import code_prompt_completion_converter
+from utils.file_utils import load_filtered_ids
 from utils.helper import naming_conversion
 from utils.general_utils import configure_trainable_layers
 
@@ -20,12 +19,6 @@ world_size = int(os.environ.get("WORLD_SIZE", "1"))
 
 master_process = global_rank == 0
 distributed = world_size > 1
-
-
-def load_filtered_ids(filtered_id_path: str) -> Set[int]:
-    with np.load(filtered_id_path, allow_pickle=False) as data:
-        filtered_ids_set = set(data["filtered_ids"].tolist())
-    return filtered_ids_set
 
 
 def main(args):

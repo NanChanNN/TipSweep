@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer, PreTrainedModel
+from transformers import PreTrainedModel
 
 
 def configure_trainable_layers(model: PreTrainedModel,

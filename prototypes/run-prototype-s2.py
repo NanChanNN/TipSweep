@@ -1,6 +1,9 @@
 import argparse
+import datetime
 import logging
 import os
+import sys
+import time
 from pathlib import Path
 from typing import Optional, List
 
@@ -16,6 +19,8 @@ from transformers.masking_utils import create_causal_mask
 
 from safetensors import safe_open
 from safetensors.torch import load_file
+
+logger = logging.getLogger(__name__)
 
 
 def pad_fn_nd(tensor_list: List[torch.Tensor],
@@ -233,11 +238,14 @@ def main(args):
     optimizer.zero_grad(set_to_none=True)
     train_iter = iter(train_loader)
     batches_seen = 0
-    for _ in range(total_steps):
+    ema_loss = None
+    start_time = time.perf_counter()
+    for step in range(total_steps):
         current_accum_steps = min(args.grad_accum, max_train_batches - batches_seen)
         batch_samples = [next(train_iter) for _ in range(current_accum_steps)]
         num_items_in_batch = sum(batch["labels"].ne(-100).sum() for batch in batch_samples).to(args.device)
 
+        step_loss = torch.zeros((), device=args.device)
         for batch in batch_samples:
             batch = {k: v.to(args.device, non_blocking=True) for k, v in batch.items()}
             
@@ -250,13 +258,27 @@ def main(args):
                                         num_items_in_batch=num_items_in_batch)
             
             loss.backward()
+            step_loss += loss.detach()
             batches_seen += 1
 
         if args.max_grad_norm > 0:
             torch.nn.utils.clip_grad_norm_(trainable_params, max_norm=args.max_grad_norm)
         optimizer.step()
+
+        # exponential moving average of the training loss, as in the paper
+        ema_loss = step_loss if ema_loss is None else 0.1 * step_loss + 0.9 * ema_loss
+        if (step + 1) % args.logging_steps == 0 or step + 1 == total_steps:
+            logger.info(f"step {step + 1}/{total_steps} | lr {lr_scheduler.get_last_lr()[0]:.3e} | "
+                        f"EMA loss {ema_loss.item():.4f}")
+
         lr_scheduler.step()
         optimizer.zero_grad(set_to_none=True)
+
+    torch.cuda.synchronize()
+    training_time = datetime.timedelta(seconds=round(time.perf_counter() - start_time))
+    logger.info(f"finished {total_steps} steps | training time {training_time} | "
+                f"peak GPU memory {torch.cuda.max_memory_allocated() / 2 ** 30:.2f} GiB")
+    logger.info(f"final EMA training loss at lr = 2^-{args.learning_rate_exponent:g}: {ema_loss.item():.4f}")
 
 
 if __name__ == "__main__":
@@ -291,11 +313,13 @@ if __name__ == "__main__":
     # others
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--cache-root', type=str, default='checkpoints')
-    
+    parser.add_argument('--logging-steps', type=int, default=10)
+
     args = parser.parse_args()
-    
+
     assert args.output_layer > 0, "--output-layer should be positive"
-    
+    assert args.logging_steps > 0, "--logging-steps should be positive"
+
     args.device = torch.device('cuda')
     args.learning_rate = 2 ** (-args.learning_rate_exponent)
     args.suffix = ''
@@ -304,8 +328,10 @@ if __name__ == "__main__":
     args.cache_dir = os.path.join(args.cache_root, args.base_model, args.task, 
                                   f'FT-O{args.output_layer}{args.suffix}', 
                                   cache_name)
-    
-    logging.info(args)
+
+    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', stream=sys.stdout)
+    logger.setLevel(logging.INFO)
+    logger.info(args)
     
     set_seed(args.seed)
     

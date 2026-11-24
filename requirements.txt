@@ -4,6 +4,7 @@ deepspeed==0.19.5
 einops==0.8.2
 flash-attn==2.8.3
 kernels==0.16.0
+liger-kernel==0.8.5
 numpy==2.2.6
 pandas==3.0.5
 pillow==12.3.0

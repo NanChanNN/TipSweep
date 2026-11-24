@@ -2,15 +2,15 @@ import argparse
 import logging
 import os
 import random
-from typing import Set, List
+from typing import List
 
 import torch
-import numpy as np
 from datasets import load_dataset
 from transformers import set_seed, AutoTokenizer, AutoModelForCausalLM
 from trl import SFTConfig, SFTTrainer
 
 from utils.data_utils import code_prompt_completion_converter
+from utils.file_utils import load_filtered_ids
 from utils.helper import naming_conversion
 
 
@@ -21,12 +21,6 @@ if ddp:
     master_process = ddp_rank == 0
 else:
     master_process = True
-
-
-def load_filtered_ids(filtered_id_path: str) -> Set[int]:
-    with np.load(filtered_id_path, allow_pickle=False) as data:
-        filtered_ids_set = set(data["filtered_ids"].tolist())
-    return filtered_ids_set
 
 
 def main(args):
@@ -165,7 +159,6 @@ if __name__ == "__main__":
     parser.add_argument('--enable-gradient-checkpointing', action='store_true')
 
     # logging
-    parser.add_argument('--enable-log', action='store_true')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--save-root', type=str, default='checkpoints')
     parser.add_argument('--save-checkpoint', action='store_true')

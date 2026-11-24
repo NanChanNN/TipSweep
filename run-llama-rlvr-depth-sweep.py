@@ -222,9 +222,6 @@ if __name__ == "__main__":
 
     save_dir = os.path.join(args.save_root, f"{args.base_model}{project_suffix}", args.task, f'FT-L{args.last_n}{args.suffix}',
                             f'LR-{naming_conversion(args.learning_rate_exponent)}')
-    
-    project_name = f'FT-{args.base_model}{project_suffix}-{args.task}-S{args.seed}-GRPO-SimpleV3'
-    run_name = f'FT-LD{args.last_n}-LR-{naming_conversion(args.learning_rate_exponent)}'
 
     if master_process:
         os.makedirs(save_dir, exist_ok=True)

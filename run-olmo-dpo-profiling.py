@@ -202,7 +202,6 @@ if __name__ == "__main__":
     parser.add_argument('--max-seq-length', type=int, default=1024)
     parser.add_argument('--logging-steps', type=int, default=10)
     parser.add_argument('--max-steps', type=int, default=None)
-    parser.add_argument('--profile-batch-size', type=int, default=16)
     parser.add_argument('--jvp-chunk-size', type=int, default=8)
     parser.add_argument('--token-chunk-size', type=int, default=32)
     parser.add_argument('--measure-every', type=int, default=500)
